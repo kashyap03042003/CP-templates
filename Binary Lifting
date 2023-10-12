@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+const int MAXN = 1e5 + 5;
+const int LOGN = 20; // Adjust this based on the maximum depth of your tree
+
+vector<int> adj[MAXN];
+int parent[MAXN][LOGN]; // parent[i][j] is the 2^j-th ancestor of node i
+int depth[MAXN];
+
+void dfs(int v, int par, int dep) {
+    parent[v][0] = par;
+    depth[v] = dep;
+
+    for (int i = 1; i < LOGN; ++i) {
+        if (parent[v][i - 1] != -1) {
+            parent[v][i] = parent[parent[v][i - 1]][i - 1];
+        } else {
+            parent[v][i] = -1; // indicates that the ancestor doesn't exist
+        }
+    }
+
+    for (int u : adj[v]) {
+        if (u != par) {
+            dfs(u, v, dep + 1);
+        }
+    }
+}
+
+int kthAncestor(int node, int k) {
+    if (k > depth[node]) return -1; // No such ancestor exists
+
+    for (int i = 0; i < LOGN; ++i) {
+        if (k & (1 << i)) {
+            node = parent[node][i];
+            if (node == -1) return -1; // No such ancestor exists
+        }
+    }
+
+    return node;
+}
+
+int main() {
+    int n, q;
+    cin >> n >> q;
+
+    for (int i = 2; i <= n; ++i) {
+        int p;
+        cin >> p;
+        adj[p].push_back(i);
+    }
+
+    memset(parent, -1, sizeof(parent));
+    dfs(1, -1, 0);
+
+    while (q--) {
+        int node, k;
+        cin >> node >> k;
+        cout << kthAncestor(node, k) << endl;
+    }
+
+    return 0;
+}
